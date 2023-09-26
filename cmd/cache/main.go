@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"regexp"
 	"strings"
@@ -47,6 +49,12 @@ func (re *regexpArrayFlags) Set(value string) error {
 	}
 	*re = append(*re, r)
 	return nil
+}
+
+func init() {
+	go func() {
+		_ = http.ListenAndServe("localhost:6060", nil)
+	}()
 }
 
 func main() {
