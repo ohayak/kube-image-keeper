@@ -3,7 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
+	"runtime"
 
 	_ "go.uber.org/automaxprocs"
 
@@ -24,6 +28,19 @@ var (
 	rateLimitQPS   int
 	rateLimitBurst int
 )
+
+func garbageCollect(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("Trigger GC\n")
+	runtime.GC()
+	io.WriteString(w, "OK")
+}
+
+func init() {
+	go func() {
+		http.HandleFunc("/garbage_collect", garbageCollect)
+		_ = http.ListenAndServe("localhost:6060", nil)
+	}()
+}
 
 func initFlags() {
 	klog.InitFlags(nil)
